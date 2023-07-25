@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"outDir": "build",
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"removeComments": true,
+		"sourceMap": true,
+		"strict": true,
+		"target": "es2015",
+		"declaration": true,
+		"skipLibCheck": true
+	},
+	"ts-node": {
+		"files": true
+	},
+	"include": [
+		"lib/**/*.ts",
+		"typings/**/*.d.ts"
+	]
+}

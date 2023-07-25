@@ -1,0 +1,35 @@
+version: '2.3'
+services:
+  systemd:
+    build: ./tests/tools/systemd
+    stop_grace_period: 3s
+    volumes:
+      - dbus:/shared/dbus
+    privileged: true
+    environment:
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/shared/dbus/system_bus_socket
+
+  sut:
+    build: ./
+    command: sleep infinity
+      # [
+      #   '/wait-for-it.sh',
+      #   '--',
+      #   'npm',
+      #   'run',
+      #   'test:integration',
+      # ]
+    stop_grace_period: 3s
+    environment:
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/shared/dbus/system_bus_socket
+    depends_on:
+      - systemd
+    volumes:
+      - dbus:/shared/dbus
+
+volumes:
+  dbus:
+    driver_opts:
+      # Use tmpfs to avoid files remaining between runs
+      type: tmpfs
+      device: tmpfs

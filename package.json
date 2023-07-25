@@ -1,0 +1,47 @@
+{
+  "name": "@balena/os-toolkit",
+  "version": "0.1.0",
+  "description": "balenaOS toolkit",
+  "main": "build/index.js",
+  "files": [
+    "build/",
+    "src/",
+    "typings/",
+    "Cargo.toml",
+    "Cargo.lock"
+  ],
+  "scripts": {
+    "clean": "rimraf build",
+    "lint": "balena-lint --typescript lib tests",
+    "lint-fix": "balena-lint --typescript --fix lib tests",
+    "build": "npm run build:rust && npm run build:node",
+    "build:node": "npm run clean && tsc",
+    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' cargo-cp-artifact -ac balena-os-toolkit index.node -- cargo build --message-format=json-render-diagnostics",
+    "build:rust:debug": "npm run build:rust --",
+    "build:rust:release": "npm run build:rust -- --release",
+    "install": "npm run build:rust:release",
+    "test": "npm run test:rust",
+    "test:rust": "cargo test",
+    "test:integration": "mocha -r ts-node/register --bail --reporter spec tests/**/*.spec.ts",
+    "test:compose": "docker compose -f docker-compose.test.yml up --build --remove-orphans --exit-code-from=sut ; npm run compose:down",
+    "compose:down": "docker compose -f docker-compose.test.yml down --volumes",
+    "prepack": "npm run build:node"
+  },
+  "author": "Balena Inc. <hello@balena.io>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@balena/lint": "^6.2.2",
+    "@types/chai": "^4.3.5",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/mocha": "^10.0.1",
+    "cargo-cp-artifact": "^0.1",
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "mocha": "^10.2.0",
+    "rimraf": "^5.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
