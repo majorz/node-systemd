@@ -34,3 +34,10 @@ $ npm run build
 
 This command uses the [cargo-cp-artifact](https://github.com/neon-bindings/cargo-cp-artifact) utility to run the Rust build and copy the built library into `./index.node`.
 
+## Run integration tests
+
+Integration tests require Docker and docker-compose. The easiest way to run the full test suite is to do
+
+```
+npm run test:compose
+```
