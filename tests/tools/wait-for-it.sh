@@ -2,7 +2,7 @@
 
 set -e
 
-timeout=3000
+timeout=30
 while :; do
 	case $1 in
 	-t | --timeout) # Takes an option argument, ensuring it has been specified.

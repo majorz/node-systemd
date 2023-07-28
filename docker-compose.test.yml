@@ -11,14 +11,14 @@ services:
 
   sut:
     build: ./
-    command: sleep infinity
-      # [
-      #   '/wait-for-it.sh',
-      #   '--',
-      #   'npm',
-      #   'run',
-      #   'test:integration',
-      # ]
+    command:
+      [
+        '/wait-for-it.sh',
+        '--',
+        'npm',
+        'run',
+        'test:integration',
+      ]
     stop_grace_period: 3s
     environment:
       DBUS_SYSTEM_BUS_ADDRESS: unix:path=/shared/dbus/system_bus_socket
