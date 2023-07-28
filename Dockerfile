@@ -1,29 +1,17 @@
-# FROM debian:stable as base
-#
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-# 		build-essential \
-#     nodejs \
-#     npm \
-#     dbus \
-#     curl
+# This dockerfile is not for production images, it has
+# objectives
+# - provide an example of install requirements
+# - test the build of the project in a musl containerized environment
+# - provide an install to run integration tests
 FROM alpine
 
 RUN apk add --update --no-cache \
 		build-base \
 		nodejs \
 		npm \
-		dbus-dev \
+		dbus \
+		rust cargo \
 		curl
-
-# Install rust
-WORKDIR /tmp
-RUN curl https://sh.rustup.rs -sSf > rustup.sh && \
-    chmod 755 rustup.sh && \
-    ./rustup.sh -y && \
-    rm /tmp/rustup.sh && \
-    . "$HOME/.cargo/env" && \
-    rustc --version && \
-    cargo --version
 
 WORKDIR /usr/src/app
 
@@ -31,8 +19,9 @@ COPY package*.json ./
 COPY Cargo.toml Cargo.lock tsconfig.json ./
 COPY src ./src
 
-RUN . "$HOME/.cargo/env" && \
-		npm install
+# Install dependencies and build
+# bindings
+RUN npm install
 
 COPY lib ./lib
 COPY typings ./typings

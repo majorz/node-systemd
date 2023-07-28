@@ -39,31 +39,38 @@ impl System {
 
         result
             .map(|connection| Self { connection })
-            .or_else(|e| cx.throw_error(e.to_string()))
+            .or_else(|e| cx.throw_error(format!("Failed to connect to D-Bus system socket: {}", e)))
     }
 }
 
 // Needed to be able to box the System struct
 impl Finalize for System {}
 
+/// Create a new connection to the system bus
+/// this function will run synchronously on the main thread
+/// and will throw if the bus is not available or the
+/// connection fails
 fn system(mut cx: FunctionContext) -> JsResult<JsBox<System>> {
     let system = System::new(&mut cx)?;
 
     Ok(cx.boxed(system))
 }
 
+/// Get the active state of a provided unit
 fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
     let system = cx.argument::<JsBox<System>>(0)?;
     let unit = cx.argument::<JsString>(1)?.value(&mut cx);
     let channel = cx.channel();
 
-    let conn = system.connection.clone();
+    // Borrow the connection
+    let connection = &system.connection;
 
     // It is important to be careful not to perform failable actions after
     // creating the promise to avoid an unhandled rejection.
     let (deferred, promise) = cx.promise();
 
     // This task will block the JavaScript main thread.
+    // TODO: figure out what we are doing for async
     future::block_on(async move {
         // let manager = SystemdManagerProxy::new(&conn).and_then(|manager| manager.get_unit(&unit));
         // let mut unit = manager.get_unit(&unit).await.unwrap();
@@ -73,7 +80,7 @@ fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
         // We chain the promises with `and_then` so we can get the error
         // to reject the promise in the
         // settle_with block
-        let state = SystemdManagerProxy::new(&conn)
+        let state = SystemdManagerProxy::new(connection)
             .and_then(|manager| async move { manager.get_unit(&unit).await })
             .and_then(|mut unit| async move { unit.active_state().await })
             .await;
