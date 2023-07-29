@@ -1,0 +1,26 @@
+- commits:
+    - subject: Use mock-systemd-bus block for testing
+      hash: be31c3a60852ddac7ff646988d694ad3068d04d7
+      body: |
+        Removes previous test service under tests
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+    - subject: Update configuration for new repo name
+      hash: 1d51e28c5b0baf3306560ce18b80d70cdac015d0
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+    - subject: Setup flowzone
+      hash: 6a916b7e36060f5898ea29409cd384146415ce8c
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+  version: 0.1.0
+  title: ""
+  date: 2023-07-29T20:55:55.050Z

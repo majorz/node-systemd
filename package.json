@@ -51,5 +51,8 @@
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
+  },
+  "versionist": {
+    "publishedAt": "2023-07-29T20:55:55.132Z"
   }
 }
