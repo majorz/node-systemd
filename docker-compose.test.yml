@@ -1,31 +1,46 @@
 version: '2.3'
 services:
-  systemd:
-    build: ./tests/tools/systemd
-    stop_grace_period: 3s
+  # This provides the testing systemd interface
+  mock-systemd:
+    image: ghcr.io/balena-os/mock-systemd-bus:0.1.1
+    depends_on:
+       - dbus
     volumes:
-      - dbus:/shared/dbus
-    privileged: true
+      - dbus:/run/dbus
     environment:
-      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/shared/dbus/system_bus_socket
+      # Set this variable with the location of your bus socket
+      # DO NOT try to use your actual system bus
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
+      # Optionally set-up any fake units you need
+      MOCK_SYSTEMD_UNITS: openvpn.service dummy.service
+
+  # This provides the bus
+  dbus:
+    image: balenablocks/dbus
+    environment:
+      DBUS_CONFIG: session.conf
+      DBUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
+    volumes:
+      - dbus:/run/dbus
 
   sut:
     build: ./
-    command: sleep infinity
-      # [
-      #   '/wait-for-it.sh',
-      #   '--',
-      #   'npm',
-      #   'run',
-      #   'test:integration',
-      # ]
+    command:
+      [
+        '/wait-for-it.sh',
+        '--',
+        'npm',
+        'run',
+        'test:integration',
+      ]
     stop_grace_period: 3s
     environment:
-      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/shared/dbus/system_bus_socket
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
     depends_on:
-      - systemd
+      - dbus
+      - mock-systemd
     volumes:
-      - dbus:/shared/dbus
+      - dbus:/run/dbus
 
 volumes:
   dbus:

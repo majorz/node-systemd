@@ -1,7 +1,8 @@
 [package]
-name = "balena-os-toolkit"
+name = "balena-systemd"
 version = "0.1.0"
-description = "balenaOS toolkit"
+description = "Essential systemd D-Bus bindings for Node.js "
+repository = "https://github.com/balena-io-modules/systemd/"
 authors = ["Balena Inc. <hello@balena.io>"]
 license = "Apache-2.0"
 edition = "2021"
@@ -18,3 +19,7 @@ futures-lite = "1.13.0"
 version = "0.10"
 default-features = false
 features = ["napi-6", "channel-api", "promise-api"]
+
+[profile.release]
+opt-level = "z"
+codegen-units = 1

@@ -1,8 +1,17 @@
 {
-  "name": "@balena/os-toolkit",
+  "name": "@balena/systemd",
   "version": "0.1.0",
-  "description": "balenaOS toolkit",
+  "description": "Essential systemd D-Bus bindings for Node.js",
+  "homepage": "https://github.com/balena-io-modules/systemd#readme",
   "main": "build/index.js",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balena-io-modules/systemd.git"
+  },
+  "bugs": {
+    "url": "https://github.com/balena-io-modules/systemd/issues"
+  },
   "files": [
     "build/",
     "src/",
@@ -16,12 +25,11 @@
     "lint-fix": "balena-lint --typescript --fix lib tests",
     "build": "npm run build:rust && npm run build:node",
     "build:node": "npm run clean && tsc",
-    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' cargo-cp-artifact -ac balena-os-toolkit index.node -- cargo build --message-format=json-render-diagnostics",
+    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' cargo-cp-artifact -ac balena-systemd index.node -- cargo build --message-format=json-render-diagnostics",
     "build:rust:debug": "npm run build:rust --",
     "build:rust:release": "npm run build:rust -- --release",
     "install": "npm run build:rust:release",
-    "test": "npm run test:rust",
-    "test:rust": "cargo test",
+    "test": "echo 'No tests yet'",
     "test:integration": "mocha -r ts-node/register --bail --reporter spec tests/**/*.spec.ts",
     "test:compose": "docker compose -f docker-compose.test.yml up --build --remove-orphans --exit-code-from=sut ; npm run compose:down",
     "compose:down": "docker compose -f docker-compose.test.yml down --volumes",

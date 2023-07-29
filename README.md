@@ -1,20 +1,77 @@
-# balenaOS tookit
+# balena-systemd
 
-This module exposes some mechanisms for safely interacting and configuring balenaOS hosts from a container.
+This module provides some essential functions to interact with [systemd Manager](https://www.freedesktop.org/software/systemd/man/org.freedesktop.systemd1.html) and [systemd-login Manager](https://www.freedesktop.org/software/systemd/man/org.freedesktop.login1.html) services via D-Bus.
 
-Features
-- [ ] Systemd manager API for starting/stopping systemd units
-- [ ] Login manager API for starting/stopping/rebooting the OS
+It uses Rust [zbus crate](https://crates.io/crates/zbus) to perform queries to the D-Bus socket and bind results to Node.js using [neon-bindings](https://neon-bindings.com/).
 
-Planned
-- [ ] Safe configuration APIs
 
+This project has no goals of providing feature parity with the systemd API and new features will be added as-needed. PRs are welcome.
 
 This project was bootstrapped by [create-neon](https://www.npmjs.com/package/create-neon).
 
-## Installing balena-os-toolkit
+## Supported features
 
-Installing balena-os-toolkit requires a [supported version of Node and Rust](https://github.com/neon-bindings/neon#platform-support).
+### ServiceManager
+
+* Manager Object
+	- Methods
+		- [x] `GetUnit`
+		- [ ] `StartUnit`
+		- [ ] `StopUnit`
+		- [ ] `RestartUnit`
+* Unit Object
+	- Properties
+		- [x] `ActiveState` (property)
+		- [ ] `PartOf` (property)
+
+
+**Example**
+
+```
+import {ServiceManager, system} from '@balena/systemd';
+
+// This runs synchronously but the connection is shared between
+// all methods. It will throw if the bus is not available
+const bus = system();
+
+(async() {
+	const manager = new ServiceManager(bus);
+	const unit = manager.getUnit('openvpn.service');
+
+	// The property needs to be awaited
+	const state = await unit.activeState;
+	
+	console.log('Unit openvpn.service state is', state);
+})();
+```
+
+## LoginManager
+
+* Manager Object
+	- Methods
+		- [ ] `Reboot`
+		- [ ] `PowerOff`
+
+**Example**
+
+```
+import {LoginManager, system} from '@balena/systemd';
+
+// This runs synchronously but the connection is shared between
+// all methods. It will throw if the bus is not available
+const bus = system();
+
+(async() {
+	const manager = new LoginManager(bus);
+
+	// WARNING: this WILL reboot the system!
+	await manager.reboot(false);
+})();
+```
+
+## Installing balena-systemd
+
+Installing the module requires a [supported version of Node and Rust](https://github.com/neon-bindings/neon#platform-support).
 
 You can install the project with npm. In the project directory, run:
 
@@ -24,7 +81,7 @@ $ npm install
 
 This fully installs the project, including installing any dependencies and running the build.
 
-## Building balena-os-toolkit
+## Building balena-systemd
 
 If you have already installed the project and only want to run the build, run:
 
@@ -32,11 +89,15 @@ If you have already installed the project and only want to run the build, run:
 $ npm run build
 ```
 
-This command uses the [cargo-cp-artifact](https://github.com/neon-bindings/cargo-cp-artifact) utility to run the Rust build and copy the built library into `./index.node`.
+This command uses the [cargo-cp-artifact](https://github.com/neon-bindings/cargo-cp-artifact) utility to run the Rust build and copy the built library into `./index.node`. The build produces static binaries. Running this command will also compile the TypeScript sources and store the output under `./build`.
+
+## Running a project that depends on this module
+
+You probably need libstdc
 
 ## Run integration tests
 
-Integration tests require Docker and docker-compose. The easiest way to run the full test suite is to do
+Integration tests are run automatically on each PR. To run the full test suite locally, you'll need Docker and docker-compose, and do
 
 ```
 npm run test:compose
