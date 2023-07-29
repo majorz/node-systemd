@@ -15,13 +15,13 @@ This project was bootstrapped by [create-neon](https://www.npmjs.com/package/cre
 
 * Manager Object
 	- Methods
-		- [ ] `GetUnit`
+		- [x] `GetUnit`
 		- [ ] `StartUnit`
 		- [ ] `StopUnit`
 		- [ ] `RestartUnit`
 * Unit Object
 	- Properties
-		- [ ] `ActiveState` (property)
+		- [x] `ActiveState` (property)
 		- [ ] `PartOf` (property)
 
 
@@ -36,8 +36,10 @@ const bus = system();
 
 (async() {
 	const manager = new ServiceManager(bus);
-	const unit = await manager.getUnit('openvpn.service');
-	const state = await unit.getActiveState();
+	const unit = manager.getUnit('openvpn.service');
+
+	// The property needs to be awaited
+	const state = await unit.activeState;
 	
 	console.log('Unit openvpn.service state is', state);
 })();

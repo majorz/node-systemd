@@ -9,7 +9,7 @@ use zbus::Connection;
     default_service = "org.freedesktop.systemd1",
     default_path = "/org/freedesktop/systemd1"
 )]
-pub trait SystemdManager {
+pub trait ServiceManager {
     #[dbus_proxy(object = "Unit")]
     fn get_unit(&self, unit: &str) -> zbus::Result<Unit>;
 }
@@ -59,7 +59,7 @@ fn system(mut cx: FunctionContext) -> JsResult<JsBox<System>> {
 /// Get the active state of a provided unit
 fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
     let system = cx.argument::<JsBox<System>>(0)?;
-    let unit = cx.argument::<JsString>(1)?.value(&mut cx);
+    let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
     let channel = cx.channel();
 
     // Borrow the connection
@@ -72,15 +72,12 @@ fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
     // This task will block the JavaScript main thread.
     // TODO: figure out what we are doing for async
     future::block_on(async move {
-        // let manager = SystemdManagerProxy::new(&conn).and_then(|manager| manager.get_unit(&unit));
-        // let mut unit = manager.get_unit(&unit).await.unwrap();
-        // let state = unit.active_state().await;
-        let unit = unit.to_owned();
+        let unit = unit_name.to_owned();
 
         // We chain the promises with `and_then` so we can get the error
         // to reject the promise in the
         // settle_with block
-        let state = SystemdManagerProxy::new(connection)
+        let state = ServiceManagerProxy::new(connection)
             .and_then(|manager| async move { manager.get_unit(&unit).await })
             .and_then(|mut unit| async move { unit.active_state().await })
             .await;

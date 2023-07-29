@@ -26,7 +26,6 @@ RUN npm install
 COPY lib ./lib
 COPY typings ./typings
 COPY tests ./tests
-COPY tests/tools/wait-for-it.sh /wait-for-it.sh
-
+COPY ./wait-for-it.sh /
 
 CMD npm run test:integration
