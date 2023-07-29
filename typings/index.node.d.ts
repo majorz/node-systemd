@@ -1,6 +1,12 @@
 declare module "*index.node" {
-	class SystemBus { }
+	type SystemBus = {};
 
 	function system(): SystemBus;
-	function unit_active_state(s: SystemBus, unit: string): Promise<string>;
+	function unitActiveState(bus: SystemBus, unitName: string): Promise<string>;
+	function unitPartOf(bus: SystemBus, unitName: string): Promise<string[]>;
+	function startUnit(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function stopUnit(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function restartUnit(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function reboot(bus: SystemBus, interactive: boolean): Promise<void>;
+	function powerOff(bus: SystemBus, interactive: boolean): Promise<void>;
 }

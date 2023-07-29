@@ -21,7 +21,22 @@ fn runtime<'a, C: Context<'a>>(cx: &mut C) -> NeonResult<&'static Runtime> {
 pub trait ServiceManager {
     #[dbus_proxy(object = "Unit")]
     fn get_unit(&self, unit: &str) -> zbus::Result<Unit>;
+
+    #[dbus_proxy(object = "Job")]
+    fn start_unit(&self, unit: &str, mode: &str) -> zbus::Result<Job>;
+
+    #[dbus_proxy(object = "Job")]
+    fn stop_unit(&self, unit: &str, mode: &str) -> zbus::Result<Job>;
+
+    #[dbus_proxy(object = "Job")]
+    fn restart_unit(&self, unit: &str, mode: &str) -> zbus::Result<Job>;
 }
+
+#[dbus_proxy(
+    default_service = "org.freedesktop.systemd1",
+    interface = "org.freedesktop.systemd1.Job"
+)]
+pub trait Job {}
 
 #[dbus_proxy(
     default_service = "org.freedesktop.systemd1",
@@ -30,7 +45,19 @@ pub trait ServiceManager {
 pub trait Unit {
     #[dbus_proxy(property)]
     fn active_state(&mut self) -> zbus::Result<String>;
-    // TODO: add unit restart methods
+
+    #[dbus_proxy(property)]
+    fn part_of(&mut self) -> zbus::Result<Vec<String>>;
+}
+
+#[dbus_proxy(
+    interface = "org.freedesktop.login1.Manager",
+    default_service = "org.freedesktop.login1",
+    default_path = "/org/freedesktop/login1"
+)]
+pub trait LoginManager {
+    fn reboot(&self, interactive: bool) -> zbus::Result<()>;
+    fn power_off(&self, interactive: bool) -> zbus::Result<()>;
 }
 
 // This is the object that will get exposed to
@@ -87,15 +114,11 @@ fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
 
     // Run operations on a background thread
     rt.spawn(async move {
-        let unit = unit_name.to_owned();
-
-        // let connection = system.to_inner(&mut cx).connection;
-
         // We chain the promises with `and_then` so we can get the error
         // to reject the promise in the
         // settle_with block
         let state = ServiceManagerProxy::new(&connection)
-            .and_then(|manager| async move { manager.get_unit(&unit).await })
+            .and_then(|manager| async move { manager.get_unit(&unit_name).await })
             .and_then(|mut unit| async move { unit.active_state().await })
             .await;
 
@@ -106,9 +129,170 @@ fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
         // limited to converting Rust types to JavaScript values. Expensive operations
         // should be performed outside of it.
         deferred.settle_with(&channel, move |mut cx| {
-            // Convert a `reqwest::Error` to a JavaScript exception
+            // Convert a `zbus::Error` to a JavaScript exception
             let state = state.or_else(|err| cx.throw_error(err.to_string()))?;
             Ok(cx.string(state))
+        });
+    });
+
+    Ok(promise)
+}
+
+fn unit_part_of(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    rt.spawn(async move {
+        let state = ServiceManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.get_unit(&unit_name).await })
+            .and_then(|mut unit| async move { unit.part_of().await })
+            .await;
+
+        // Settle the promise from the result of a closure. JavaScript exceptions
+        // will be converted to a Promise rejection.
+        //
+        // This closure will execute on the JavaScript main thread. It should be
+        // limited to converting Rust types to JavaScript values. Expensive operations
+        // should be performed outside of it.
+        deferred.settle_with(&channel, move |mut cx| {
+            // Convert a `zbus::Error` to a JavaScript exception
+            let state = state.or_else(|err| cx.throw_error(err.to_string()))?;
+
+            let res = cx.empty_array();
+            for (i, unit) in state.iter().enumerate() {
+                let unit = cx.string(unit);
+                res.set(&mut cx, i as u32, unit)?;
+            }
+
+            Ok(res)
+        });
+    });
+
+    Ok(promise)
+}
+
+fn start_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+    let mode = cx.argument::<JsString>(2)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    // Run operations on a background thread
+    rt.spawn(async move {
+        let result = ServiceManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.start_unit(&unit_name, &mode).await })
+            .await;
+
+        deferred.settle_with(&channel, move |mut cx| {
+            result.or_else(|err| cx.throw_error(err.to_string()))?;
+            Ok(cx.undefined())
+        });
+    });
+
+    Ok(promise)
+}
+
+fn stop_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+    let mode = cx.argument::<JsString>(2)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    // Run operations on a background thread
+    rt.spawn(async move {
+        let result = ServiceManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.stop_unit(&unit_name, &mode).await })
+            .await;
+
+        deferred.settle_with(&channel, move |mut cx| {
+            result.or_else(|err| cx.throw_error(err.to_string()))?;
+            Ok(cx.undefined())
+        });
+    });
+
+    Ok(promise)
+}
+
+fn restart_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+    let mode = cx.argument::<JsString>(2)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    // Run operations on a background thread
+    rt.spawn(async move {
+        let result = ServiceManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.restart_unit(&unit_name, &mode).await })
+            .await;
+
+        deferred.settle_with(&channel, move |mut cx| {
+            result.or_else(|err| cx.throw_error(err.to_string()))?;
+            Ok(cx.undefined())
+        });
+    });
+
+    Ok(promise)
+}
+
+fn reboot(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let interactive = cx.argument::<JsBoolean>(1)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    // Run operations on a background thread
+    rt.spawn(async move {
+        let result = LoginManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.reboot(interactive).await })
+            .await;
+
+        deferred.settle_with(&channel, move |mut cx| {
+            result.or_else(|err| cx.throw_error(err.to_string()))?;
+            Ok(cx.undefined())
+        });
+    });
+
+    Ok(promise)
+}
+
+fn power_off(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let system = cx.argument::<JsBox<System>>(0)?;
+    let interactive = cx.argument::<JsBoolean>(1)?.value(&mut cx);
+    let channel = cx.channel();
+
+    let connection = system.connection.clone();
+    let (deferred, promise) = cx.promise();
+
+    // Run operations on a background thread
+    rt.spawn(async move {
+        let result = LoginManagerProxy::new(&connection)
+            .and_then(|manager| async move { manager.power_off(interactive).await })
+            .await;
+
+        deferred.settle_with(&channel, move |mut cx| {
+            result.or_else(|err| cx.throw_error(err.to_string()))?;
+            Ok(cx.undefined())
         });
     });
 
@@ -118,6 +302,12 @@ fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("system", system)?;
-    cx.export_function("unit_active_state", unit_active_state)?;
+    cx.export_function("unitActiveState", unit_active_state)?;
+    cx.export_function("unitPartOf", unit_part_of)?;
+    cx.export_function("startUnit", start_unit)?;
+    cx.export_function("stopUnit", stop_unit)?;
+    cx.export_function("restartUnit", restart_unit)?;
+    cx.export_function("reboot", reboot)?;
+    cx.export_function("powerOff", power_off)?;
     Ok(())
 }
