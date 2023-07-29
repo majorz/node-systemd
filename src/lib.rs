@@ -1,8 +1,17 @@
-use futures_lite::future;
 use neon::prelude::*;
+use once_cell::sync::OnceCell;
+use tokio::runtime::Runtime;
 use zbus::dbus_proxy;
 use zbus::export::futures_util::TryFutureExt;
 use zbus::Connection;
+
+// Return a global tokio runtime or create one if it doesn't exist.
+// Throws a JavaScript exception if the `Runtime` fails to create.
+fn runtime<'a, C: Context<'a>>(cx: &mut C) -> NeonResult<&'static Runtime> {
+    static RUNTIME: OnceCell<Runtime> = OnceCell::new();
+
+    RUNTIME.get_or_try_init(|| Runtime::new().or_else(|err| cx.throw_error(err.to_string())))
+}
 
 #[dbus_proxy(
     interface = "org.freedesktop.systemd1.Manager",
@@ -35,11 +44,13 @@ impl System {
     where
         C: Context<'a>,
     {
-        let result = future::block_on(async { Connection::system().await });
-
-        result
+        runtime(cx)
+            .and_then(|r| {
+                r.block_on(Connection::system()).or_else(|e| {
+                    cx.throw_error(format!("Failed to connect to D-Bus system socket: {}", e))
+                })
+            })
             .map(|connection| Self { connection })
-            .or_else(|e| cx.throw_error(format!("Failed to connect to D-Bus system socket: {}", e)))
     }
 }
 
@@ -58,26 +69,32 @@ fn system(mut cx: FunctionContext) -> JsResult<JsBox<System>> {
 
 /// Get the active state of a provided unit
 fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
     let system = cx.argument::<JsBox<System>>(0)?;
     let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
     let channel = cx.channel();
 
-    // Borrow the connection
-    let connection = &system.connection;
+    // We need to clone the connection because we are going to move it into
+    // the spawned task. Zbus documentation reports that this is a very cheap
+    // operation and it seems that this is the way to share connections
+    // between threads
+    // https://docs.rs/zbus/3.0.0/zbus/struct.Connection.html
+    let connection = system.connection.clone();
 
     // It is important to be careful not to perform failable actions after
     // creating the promise to avoid an unhandled rejection.
     let (deferred, promise) = cx.promise();
 
-    // This task will block the JavaScript main thread.
-    // TODO: figure out what we are doing for async
-    future::block_on(async move {
+    // Run operations on a background thread
+    rt.spawn(async move {
         let unit = unit_name.to_owned();
+
+        // let connection = system.to_inner(&mut cx).connection;
 
         // We chain the promises with `and_then` so we can get the error
         // to reject the promise in the
         // settle_with block
-        let state = ServiceManagerProxy::new(connection)
+        let state = ServiceManagerProxy::new(&connection)
             .and_then(|manager| async move { manager.get_unit(&unit).await })
             .and_then(|mut unit| async move { unit.active_state().await })
             .await;

@@ -12,8 +12,9 @@ exclude = ["index.node"]
 crate-type = ["cdylib"]
 
 [dependencies]
-zbus = "3.14.1"
-futures-lite = "1.13.0"
+zbus = { version = "3.14.1", default-features = false, features = ["tokio"] }
+tokio = { version = "1.29.1", features = ["rt-multi-thread"] }
+once_cell = "1.18.0"
 
 [dependencies.neon]
 version = "0.10"
