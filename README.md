@@ -16,13 +16,13 @@ This project was bootstrapped by [create-neon](https://www.npmjs.com/package/cre
 * Manager Object
 	- Methods
 		- [x] `GetUnit`
-		- [ ] `StartUnit`
-		- [ ] `StopUnit`
-		- [ ] `RestartUnit`
+		- [x] `StartUnit`
+		- [x] `StopUnit`
+		- [x] `RestartUnit`
 * Unit Object
 	- Properties
-		- [x] `ActiveState` (property)
-		- [ ] `PartOf` (property)
+		- [x] `ActiveState`
+		- [x] `PartOf`
 
 
 **Example**
@@ -49,8 +49,8 @@ const bus = system();
 
 * Manager Object
 	- Methods
-		- [ ] `Reboot`
-		- [ ] `PowerOff`
+		- [x] `Reboot`
+		- [x] `PowerOff`
 
 **Example**
 
