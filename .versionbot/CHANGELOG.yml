@@ -1,4 +1,41 @@
 - commits:
+    - subject: Setup repo-type
+      hash: 99b955fc831c4557193a25d9c19d02e317097660
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: Refactor functions to use system as `this`
+      hash: 51ce38973cd1e2ece4fb07dc92f3ab4cbaa4b7ca
+      body: |
+        Bound methods are now called `function.call(bus, ...)`
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: Add missing service and login manager methods
+      hash: a57014ffd7cf0f8cc35b625e8779e52b7d2180c8
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+    - subject: Add async support via tokio
+      hash: 893519d183519ac1411d22aa9805adc3f7ad9695
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+  version: 0.2.0
+  title: ""
+  date: 2023-07-30T03:05:01.942Z
+- commits:
     - subject: Use mock-systemd-bus block for testing
       hash: be31c3a60852ddac7ff646988d694ad3068d04d7
       body: |

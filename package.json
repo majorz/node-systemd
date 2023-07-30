@@ -1,6 +1,6 @@
 {
   "name": "@balena/systemd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Essential systemd D-Bus bindings for Node.js",
   "homepage": "https://github.com/balena-io-modules/systemd#readme",
   "main": "build/index.js",
@@ -53,6 +53,6 @@
     "typescript": "^5.1.6"
   },
   "versionist": {
-    "publishedAt": "2023-07-29T20:55:55.132Z"
+    "publishedAt": "2023-07-30T03:05:02.011Z"
   }
 }
