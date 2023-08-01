@@ -100,8 +100,8 @@ impl System {
     /// Get the active state of a provided unit
     fn unit_active_state(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let unit_name = cx.argument::<JsString>(0)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
         let channel = cx.channel();
 
         // We need to clone the connection because we are going to move it into
@@ -121,8 +121,10 @@ impl System {
             // to reject the promise in the
             // settle_with block
             let state = ServiceManagerProxy::new(&connection)
-                .and_then(|manager| async move { manager.get_unit(&unit_name).await })
-                .and_then(|mut unit| async move { unit.active_state().await })
+                .and_then(|manager| async move {
+                    let mut unit = manager.get_unit(&unit_name).await?;
+                    unit.active_state().await
+                })
                 .await;
 
             // Settle the promise from the result of a closure. JavaScript exceptions
@@ -143,8 +145,8 @@ impl System {
 
     fn unit_part_of(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let unit_name = cx.argument::<JsString>(0)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -152,8 +154,10 @@ impl System {
 
         rt.spawn(async move {
             let state = ServiceManagerProxy::new(&connection)
-                .and_then(|manager| async move { manager.get_unit(&unit_name).await })
-                .and_then(|mut unit| async move { unit.part_of().await })
+                .and_then(|manager| async move {
+                    let mut unit = manager.get_unit(&unit_name).await?;
+                    unit.part_of().await
+                })
                 .await;
 
             // Settle the promise from the result of a closure. JavaScript exceptions
@@ -179,11 +183,11 @@ impl System {
         Ok(promise)
     }
 
-    fn start_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    fn unit_start(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let unit_name = cx.argument::<JsString>(0)?.value(&mut cx);
-        let mode = cx.argument::<JsString>(1)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+        let mode = cx.argument::<JsString>(2)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -204,11 +208,11 @@ impl System {
         Ok(promise)
     }
 
-    fn stop_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    fn unit_stop(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let unit_name = cx.argument::<JsString>(0)?.value(&mut cx);
-        let mode = cx.argument::<JsString>(1)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+        let mode = cx.argument::<JsString>(2)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -229,11 +233,11 @@ impl System {
         Ok(promise)
     }
 
-    fn restart_unit(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    fn unit_restart(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let unit_name = cx.argument::<JsString>(0)?.value(&mut cx);
-        let mode = cx.argument::<JsString>(1)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let unit_name = cx.argument::<JsString>(1)?.value(&mut cx);
+        let mode = cx.argument::<JsString>(2)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -256,8 +260,8 @@ impl System {
 
     fn reboot(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let interactive = cx.argument::<JsBoolean>(0)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let interactive = cx.argument::<JsBoolean>(1)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -280,8 +284,8 @@ impl System {
 
     fn power_off(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let rt = runtime(&mut cx)?;
-        let system = cx.this().downcast_or_throw::<JsBox<System>, _>(&mut cx)?;
-        let interactive = cx.argument::<JsBoolean>(0)?.value(&mut cx);
+        let system = cx.argument::<JsBox<System>>(0)?;
+        let interactive = cx.argument::<JsBoolean>(1)?.value(&mut cx);
         let channel = cx.channel();
 
         let connection = system.connection.clone();
@@ -308,9 +312,9 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("system", system)?;
     cx.export_function("unitActiveState", System::unit_active_state)?;
     cx.export_function("unitPartOf", System::unit_part_of)?;
-    cx.export_function("startUnit", System::start_unit)?;
-    cx.export_function("stopUnit", System::stop_unit)?;
-    cx.export_function("restartUnit", System::restart_unit)?;
+    cx.export_function("unitStart", System::unit_start)?;
+    cx.export_function("unitStop", System::unit_stop)?;
+    cx.export_function("unitRestart", System::unit_restart)?;
     cx.export_function("reboot", System::reboot)?;
     cx.export_function("powerOff", System::power_off)?;
     Ok(())

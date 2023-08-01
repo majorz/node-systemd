@@ -4,11 +4,11 @@ declare module "*index.node" {
 	function system(): SystemBus;
 
 	// These methods
-	function unitActiveState(unitName: string): Promise<string>;
-	function unitPartOf(unitName: string): Promise<string[]>;
-	function startUnit(unitName: string, mode: string): Promise<void>;
-	function stopUnit(unitName: string, mode: string): Promise<void>;
-	function restartUnit(unitName: string, mode: string): Promise<void>;
-	function reboot(interactive: boolean): Promise<void>;
-	function powerOff(interactive: boolean): Promise<void>;
+	function unitActiveState(bus: SystemBus, unitName: string): Promise<string>;
+	function unitPartOf(bus: SystemBus, unitName: string): Promise<string[]>;
+	function unitStart(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function unitStop(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function unitRestart(bus: SystemBus, unitName: string, mode: string): Promise<void>;
+	function reboot(bus: SystemBus, interactive: boolean): Promise<void>;
+	function powerOff(bus: SystemBus, interactive: boolean): Promise<void>;
 }
