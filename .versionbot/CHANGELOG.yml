@@ -1,4 +1,32 @@
 - commits:
+    - subject: Make the module public on npm
+      hash: 8020f0003b7347560df0bbb973ac7eb636a4020c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: Refactor API for better UX
+      hash: f0c75a2cbb3a1044c66bfbfa99ac862dcddf9505
+      body: >
+        - Move unit control methods to the unit object: Even if they belong to
+        the manager object in the systemd specification,
+
+        they make more sense under the unit object, providing better UX
+
+        - Pass bus as a rust function argument: Previously, the bus was obtained using `this()` in rust, which would
+
+        force calling methods to use `function.call`
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+  version: 0.3.0
+  title: ""
+  date: 2023-08-02T15:51:52.514Z
+- commits:
     - subject: Setup repo-type
       hash: 99b955fc831c4557193a25d9c19d02e317097660
       body: ""
