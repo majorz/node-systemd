@@ -42,6 +42,11 @@ const bus = system();
 	const state = await unit.activeState;
 	
 	console.log('Unit openvpn.service state is', state);
+
+    // Start the service.
+    await unit.start();
+
+    console.log('Unit openvpn.service state is now', await unit.activeState);
 })();
 ```
 
