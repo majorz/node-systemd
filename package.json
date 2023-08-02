@@ -4,7 +4,6 @@
   "description": "Essential systemd D-Bus bindings for Node.js",
   "homepage": "https://github.com/balena-io-modules/systemd#readme",
   "main": "build/index.js",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/balena-io-modules/systemd.git"
