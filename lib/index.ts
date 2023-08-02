@@ -7,9 +7,26 @@ import {
 	unitRestart,
 	powerOff,
 	reboot,
+	system,
 } from '../index.node';
 
-export { system } from '../index.node';
+export { system, SystemBus } from '../index.node';
+
+/**
+ * Convenience method to return a singleton instance of the system bus.
+ *
+ * Use this instead of system() if you want to avoid creating
+ * multiple connections
+ */
+export const singleton = (() => {
+	let bus: SystemBus | null = null;
+	return async function () {
+		if (!bus) {
+			bus = await system();
+		}
+		return bus;
+	};
+})();
 
 /**
  * See: https://www.freedesktop.org/wiki/Software/systemd/dbus/

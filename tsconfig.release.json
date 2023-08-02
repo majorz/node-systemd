@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "lib/**/*.ts",
+    "typings/**/*.d.ts"
+  ],
+  "exclude": [
+    "lib/**/*.spec.ts"
+  ]
+}

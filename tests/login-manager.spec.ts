@@ -5,8 +5,6 @@ import { exec as execSync } from 'child_process';
 
 const exec = promisify(execSync);
 
-const bus = system();
-
 export async function dbusSend(
 	dest: string,
 	path: string,
@@ -40,6 +38,7 @@ export async function dbusSend(
 
 describe('LoginManager', () => {
 	it('allows to reboot the system', async () => {
+		const bus = await system();
 		const manager = new LoginManager(bus);
 		await expect(manager.reboot()).to.not.be.rejected;
 
@@ -57,6 +56,7 @@ describe('LoginManager', () => {
 	});
 
 	it('allows to power off the system', async () => {
+		const bus = await system();
 		const manager = new LoginManager(bus);
 		await expect(manager.powerOff()).to.not.be.rejected;
 

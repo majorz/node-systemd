@@ -30,11 +30,11 @@ This project was bootstrapped by [create-neon](https://www.npmjs.com/package/cre
 ```
 import {ServiceManager, system} from '@balena/systemd';
 
-// This runs synchronously but the connection is shared between
-// all methods. It will throw if the bus is not available
-const bus = system();
-
 (async() {
+	// This returns a new connection to the bus
+	// use singleton() if want to share a connection across
+    // your code
+	const bus = await system();
 	const manager = new ServiceManager(bus);
 	const unit = manager.getUnit('openvpn.service');
 
@@ -62,11 +62,10 @@ const bus = system();
 ```
 import {LoginManager, system} from '@balena/systemd';
 
-// This runs synchronously but the connection is shared between
-// all methods. It will throw if the bus is not available
-const bus = system();
-
 (async() {
+	// This returns a new connection to the bus
+	// use singleton() if want to share a connection across
+	const bus = await system();
 	const manager = new LoginManager(bus);
 
 	// WARNING: this WILL reboot the system!

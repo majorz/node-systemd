@@ -1,7 +1,14 @@
 declare module "*index.node" {
-	type SystemBus = {};
+	class SystemBus {
+		// Needed for typechecking
+		private __id: unique symbol
 
-	function system(): SystemBus;
+		// Do not allow direct instantiation
+		// or sub-classing
+		private constructor();
+	};
+
+	function system(): Promise<SystemBus>;
 
 	// These methods
 	function unitActiveState(bus: SystemBus, unitName: string): Promise<string>;
