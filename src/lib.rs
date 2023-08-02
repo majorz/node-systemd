@@ -66,32 +66,32 @@ struct System {
     connection: Connection,
 }
 
-impl System {
-    fn new<'a, C>(cx: &mut C) -> NeonResult<Self>
-    where
-        C: Context<'a>,
-    {
-        runtime(cx)
-            .and_then(|r| {
-                r.block_on(Connection::system()).or_else(|e| {
-                    cx.throw_error(format!("Failed to connect to D-Bus system socket: {}", e))
-                })
-            })
-            .map(|connection| Self { connection })
-    }
-}
-
 // Needed to be able to box the System struct
 impl Finalize for System {}
 
 /// Create a new connection to the system bus
-/// this function will run synchronously on the main thread
-/// and will throw if the bus is not available or the
-/// connection fails
-fn system(mut cx: FunctionContext) -> JsResult<JsBox<System>> {
-    let system = System::new(&mut cx)?;
+fn system(mut cx: FunctionContext) -> JsResult<JsPromise> {
+    let rt = runtime(&mut cx)?;
+    let channel = cx.channel();
+    let (deferred, promise) = cx.promise();
 
-    Ok(cx.boxed(system))
+    rt.spawn(async move {
+        // Create the connection in a background thread
+        // we await the result here, but we only unwrap it inside the promise
+        // to avoid unhandle promise rejections
+        let connection = Connection::system().await;
+        deferred.settle_with(&channel, move |mut cx| {
+            let connection = connection.or_else(|e| {
+                cx.throw_error(format!("Failed to connect to D-Bus system socket: {}", e))
+            })?;
+
+            let system = System { connection };
+
+            Ok(cx.boxed(system))
+        });
+    });
+
+    Ok(promise)
 }
 
 // Here we implement the functions that will get exposed
