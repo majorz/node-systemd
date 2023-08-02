@@ -24,7 +24,7 @@
     "lint-fix": "balena-lint --typescript --fix lib tests",
     "build": "npm run build:rust && npm run build:node",
     "build:node": "npm run clean && tsc",
-    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' cargo-cp-artifact -ac balena-systemd index.node -- cargo build --message-format=json-render-diagnostics",
+    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' npx cargo-cp-artifact -ac balena-systemd index.node -- cargo build --message-format=json-render-diagnostics",
     "build:rust:debug": "npm run build:rust --",
     "build:rust:release": "npm run build:rust -- --release",
     "install": "npm run build:rust:release",
