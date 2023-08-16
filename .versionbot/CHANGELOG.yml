@@ -1,4 +1,18 @@
 - commits:
+    - subject: Clean rust target after the `install` step
+      hash: 8996f14a8a3f0d98348e86affb36b6909ae2b8a7
+      body: |
+        This prevents the target folder bloating the size of the `node_modules`
+        directory.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 0.4.1
+  title: ""
+  date: 2023-08-16T19:33:04.525Z
+- commits:
     - subject: Make `system()` constructor an async function
       hash: f6500378cf57eb15e969c3351ca903be39b1c5aa
       body: |
