@@ -27,7 +27,7 @@
     "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' npx cargo-cp-artifact -ac balena-systemd index.node -- cargo build --message-format=json-render-diagnostics",
     "build:rust:debug": "npm run build:rust --",
     "build:rust:release": "npm run build:rust -- --release",
-    "install": "npm run build:rust:release",
+    "install": "npm run build:rust:release && cargo clean",
     "test": "echo 'No tests yet'",
     "test:integration": "mocha -r ts-node/register --bail --reporter spec tests/**/*.spec.ts",
     "test:compose": "docker compose -f docker-compose.test.yml up --build --remove-orphans --exit-code-from=sut ; npm run compose:down",
