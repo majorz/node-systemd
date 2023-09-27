@@ -1,0 +1,68 @@
+---
+name: publish binaries
+description: package GitHub release for node-pre-gyp
+# https://github.com/product-os/flowzone/tree/master/.github/actions
+inputs:
+  json:
+    description: 'JSON stringified object containing all the inputs from the calling workflow'
+    required: true
+  secrets:
+    description: 'JSON stringified object containing all the secrets from the calling workflow'
+    required: true
+  variables:
+    description: 'JSON stringified object containing all the variables from the calling workflow'
+    required: true
+  # --- custom environment
+  NODE_VERSION:
+    description: 'Node.js version'
+    default: '18.x'
+
+runs:
+  # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Login to GitHub Container Registry
+      continue-on-error: true
+      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ fromJSON(inputs.secrets).GITHUB_TOKEN }}
+
+    - name: Get package version
+      shell: bash
+      run: echo "PKG_VERSION=v$(cat package.json | jq -r .version)" >> $GITHUB_ENV
+
+    - name: Copy the binary from the built docker image
+      shell: bash
+      run: |
+        set -ex
+
+        image="ghcr.io/balena-io-modules/node-systemd:build-${{ github.event.pull_request.head.sha }}"
+        while ! docker buildx imagetools inspect "${image}" >/dev/null 2>&1
+        do
+          echo "waiting for ${image}..."
+          sleep $(((RANDOM % 10) + 10))
+        done
+
+        # Copy the binary from the image to the local folder for packaging
+        container="node-systemd-$(echo $PLATFORM | sed 's|/|-|g')"
+        docker pull --platform "$PLATFORM" "${image}"
+        docker create --name "${container}" "${image}"
+        docker cp "${container}:/usr/src/app/build/stage/${PKG_VERSION}" "./${PKG_VERSION}"
+      env:
+        PLATFORM: ${{ env.matrix_value }}
+        PKG_VERSION: ${{ env.PKG_VERSION }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: gh-release-${{ github.event.pull_request.head.sha || github.event.head_commit.id }}
+        path: ${{ env.PKG_VERSION }}/*.tar.gz
+        retention-days: 1

@@ -1,9 +1,10 @@
-# This dockerfile is not for production images, it has
+# This dockerfile is not for production images, it has the following
 # objectives
 # - provide an example of install requirements
 # - test the build of the project in a musl containerized environment
 # - provide an install to run integration tests
-FROM alpine
+# -	generate a binary to be published with the package to be used by node-pre-gyp
+FROM alpine:3.18
 
 RUN apk add --update --no-cache \
 		build-base \
@@ -22,6 +23,9 @@ COPY src ./src
 # Install dependencies and build
 # bindings
 RUN npm install
+
+# Create pre-gyp package
+RUN npx node-pre-gyp package
 
 COPY lib ./lib
 COPY typings ./typings
