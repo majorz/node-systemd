@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update @balena/lint to latest
+      hash: 25b58b111b2d53b8d40f01ac12c001a2e4dcbdf9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 0.4.2
+  title: ""
+  date: 2023-09-29T14:23:27.454Z
+- commits:
     - subject: Clean rust target after the `install` step
       hash: 8996f14a8a3f0d98348e86affb36b6909ae2b8a7
       body: |
