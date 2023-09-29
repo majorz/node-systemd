@@ -1,4 +1,23 @@
 - commits:
+    - subject: Publish binaries with node pre-gyp
+      hash: 1bfbbe05e54c980cadd488f0fdfb64b8e7075763
+      body: |
+        This uses the binaries built within the docker image build on the
+        testing step to package with the release for use with node pre-gyp.
+
+        Node pre-gyp will look for published artifacts for the given
+        architecture before trying to build the module locally. This should
+        allow projects relying on this dependency to build much faster,
+        particularly on constrained environments.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+  version: 0.5.0
+  title: ""
+  date: 2023-09-29T15:45:49.586Z
+- commits:
     - subject: Update @balena/lint to latest
       hash: 25b58b111b2d53b8d40f01ac12c001a2e4dcbdf9
       body: ""
