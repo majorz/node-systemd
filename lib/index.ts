@@ -49,7 +49,10 @@ export class ServiceManager {
 export type JobMode = 'replace' | 'fail' | 'isolate' | 'ignore-dependencies';
 
 export class Unit {
-	constructor(readonly bus: SystemBus, readonly name: string) {}
+	constructor(
+		readonly bus: SystemBus,
+		readonly name: string,
+	) {}
 
 	/**
 	 * Return the unit state
