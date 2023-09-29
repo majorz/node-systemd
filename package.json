@@ -19,15 +19,15 @@
     "Cargo.lock"
   ],
   "scripts": {
-    "clean": "rimraf build",
+    "clean": "rimraf build native",
     "lint": "balena-lint --typescript lib tests",
     "lint-fix": "balena-lint --typescript --fix lib tests",
     "build": "npm run build:rust && npm run build:node",
     "build:node": "npm run clean && tsc --project tsconfig.release.json",
-    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' npx cargo-cp-artifact -ac balena-systemd index.node -- cargo build --message-format=json-render-diagnostics",
+    "build:rust": "RUSTFLAGS='-C target-feature=-crt-static' npx cargo-cp-artifact -ac balena-systemd ./native/index.node -- cargo build --message-format=json-render-diagnostics",
     "build:rust:debug": "npm run build:rust --",
     "build:rust:release": "npm run build:rust -- --release",
-    "install": "npm run build:rust:release && cargo clean",
+    "install": "node-pre-gyp install --fallback-to-build=false || (npm run build:rust:release && cargo clean)",
     "test": "echo 'No tests yet'",
     "test:integration": "mocha -r ts-node/register --bail --reporter spec tests/**/*.spec.ts",
     "test:compose": "docker compose -f docker-compose.test.yml up --build --remove-orphans --exit-code-from=sut ; npm run compose:down",
@@ -53,5 +53,15 @@
   },
   "versionist": {
     "publishedAt": "2023-09-29T14:23:27.535Z"
+  },
+  "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.11"
+  },
+  "binary": {
+    "module_name": "index",
+    "module_path": "./native",
+    "host": "https://github.com/balena-io-modules/node-systemd/releases/download/",
+    "package_name": "balena-systemd-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
+    "remote_path": "v{version}"
   }
 }

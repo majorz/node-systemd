@@ -8,9 +8,9 @@ import {
 	powerOff,
 	reboot,
 	system,
-} from '../index.node';
+} from '../native/index.node';
 
-export { system, SystemBus } from '../index.node';
+export { system, SystemBus } from '../native/index.node';
 
 /**
  * Convenience method to return a singleton instance of the system bus.

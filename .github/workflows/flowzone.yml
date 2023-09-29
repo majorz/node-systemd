@@ -24,7 +24,15 @@ jobs:
       )
     secrets: inherit
     with:
-      rust_toolchain: stable
-      cargo_targets: |
-        aarch64-unknown-linux-musl,
-        x86_64-unknown-linux-musl
+      docker_images: |
+        ghcr.io/balena-io-modules/node-systemd
+      cargo_targets: ''
+      # The custom publish matrix lists the docker image architectures from
+      # where we will extract the binaries for publishing.
+      # The linux/arm/v6 binary below should work for both v6 and
+      # v7. Node.js doesn't distinguish between these architectures
+      custom_publish_matrix: |
+        linux/arm/v6,
+        linux/arm64,
+        linux/amd64,
+        linux/386

@@ -102,4 +102,4 @@ dist
 
 # Rust and neon files
 target
-index.node
+native
